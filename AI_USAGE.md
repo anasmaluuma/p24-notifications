@@ -8,3 +8,4 @@
 | 2026-11-19 | Claude | Code de POST /notifications, WebSocket, page client, script de simulation | Tests Swagger (201, 422), 3 onglets, 30/30 notifications |
 
 Je reste responsable du code et capable d'expliquer chaque partie.
+| 2026-11-19 | Gemini | Validation du user (regex), endpoint /history/{user}/stats (XLEN), nettoyage WebSocket | Relu, teste, explique |
