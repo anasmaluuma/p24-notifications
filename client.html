@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>P24 Notifications</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:600px;margin:30px auto}
+li{list-style:none;margin:6px 0;padding:8px;border-left:4px solid #888;background:#f4f4f4}
+.message{border-color:#2980b9}.evenement{border-color:#27ae60}.statut{border-color:#e67e22}
+</style>
+</head>
+<body>
+<h2>Notifications P24</h2>
+<input id="user" value="user42">
+<button onclick="connecter()">Se connecter</button>
+<p id="etat">Deconnecte</p>
+<h3>En direct</h3><ul id="live"></ul>
+<h3>Historique recent</h3><ul id="histo"></ul>
+<script>
+let ws;
+function ajouter(liste, n) {
+  const li = document.createElement("li");
+  li.className = n.type;
+  li.textContent = "[" + n.type + "] " + n.msg + " (" + n.source + ")";
+  liste.appendChild(li);
+}
+async function connecter() {
+  const user = document.getElementById("user").value.trim();
+  if (!user) return;
+  if (ws) ws.close();
+  const histo = document.getElementById("histo");
+  histo.innerHTML = "";
+  const rep = await fetch("/history/" + user);
+  (await rep.json()).forEach(n => ajouter(histo, n));
+  ws = new WebSocket("ws://" + location.host + "/ws/" + user);
+  ws.onopen = () => document.getElementById("etat").textContent = "Connecte : " + user;
+  ws.onclose = () => document.getElementById("etat").textContent = "Deconnecte";
+  ws.onmessage = e => {
+    const live = document.getElementById("live");
+    const avant = live.firstChild;
+    const n = JSON.parse(e.data);
+    ajouter(live, n);
+    live.insertBefore(live.lastChild, avant);
+  };
+}
+</script>
+</body>
+</html>

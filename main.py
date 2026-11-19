@@ -1,23 +1,28 @@
-﻿import json
+﻿import asyncio
+import json
 import os
 from typing import Literal
 
 import redis
+import redis.asyncio as aredis
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from redis.exceptions import RedisError
 
 load_dotenv()
 
-app = FastAPI(title="P24 Notifications")
-r = redis.Redis(
+CONFIG = dict(
     host=os.getenv("REDIS_HOST", "127.0.0.1"),
     port=int(os.getenv("REDIS_PORT", "6379")),
     password=os.getenv("REDIS_PASSWORD") or None,
     decode_responses=True,
-    socket_connect_timeout=2,
 )
+
+app = FastAPI(title="P24 Notifications")
+r = redis.Redis(**CONFIG, socket_connect_timeout=2)
+ar = aredis.Redis(**CONFIG)
 
 
 class Notification(BaseModel):
@@ -49,3 +54,40 @@ def publier(n: Notification):
     except RedisError:
         raise HTTPException(status_code=503, detail="Redis indisponible")
     return {"id": id_stream, "abonnes": abonnes}
+
+
+@app.get("/history/{user}")
+def historique(user: str, count: int = 10):
+    try:
+        entrees = r.xrevrange(f"history:{user}", count=min(max(count, 1), 50))
+    except RedisError:
+        raise HTTPException(status_code=503, detail="Redis indisponible")
+    return [{"id": i, **champs} for i, champs in entrees]
+
+
+@app.websocket("/ws/{user}")
+async def ws_notifications(ws: WebSocket, user: str):
+    await ws.accept()
+    pubsub = ar.pubsub()
+    await pubsub.subscribe(f"notifications:{user}")
+
+    async def envoyer():
+        async for m in pubsub.listen():
+            if m["type"] == "message":
+                await ws.send_text(m["data"])
+
+    tache = asyncio.create_task(envoyer())
+    try:
+        while True:
+            await ws.receive_text()
+    except WebSocketDisconnect:
+        pass
+    finally:
+        tache.cancel()
+        await pubsub.unsubscribe(f"notifications:{user}")
+        await pubsub.aclose()
+
+
+@app.get("/client")
+def client():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "client.html"))
