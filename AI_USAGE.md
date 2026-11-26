@@ -1,13 +1,11 @@
-# Declaration d'utilisation de l'IA (P24)
+# Utilisation des outils d'IA (P24)
 
-## Journal des utilisations
-
-| Date | Outil IA | Objectif du prompt | Validation et modifications |
+| Date | Outil | Utilisation | Ce que j'ai verifie / modifie |
 |---|---|---|---|
-| 2026-11-10 | Claude | Structure initiale de l'API FastAPI + WebSocket + Redis Pub/Sub et Streams | Code relu, adapte, execute et teste sur redis-cli et pytest |
+| 2026-11-09 | Claude | Aide au choix de projet (P24) et plan de travail | Lecture du catalogue et des consignes, choix personnel |
+| 2026-11-10 | Claude | Explication de Pub/Sub, Streams, schema des cles Redis | Test de chaque commande dans redis-cli |
+| 2026-11-12 | Claude | Aide a la mise en place de FastAPI, validation Pydantic | Ecriture manuelle des endpoints / et /health |
+| 2026-11-19 | Claude | Code de POST /notifications, WebSocket, page client, script de simulation | Tests Swagger (201, 422), 3 onglets, 30/30 notifications |
 | 2026-11-19 | Gemini | Validation du user (regex), endpoint /history/{user}/stats (XLEN), nettoyage WebSocket | Relu, teste, explique |
 
-## Ce qui a ete verifie manuellement
-- Commandes Redis executees directement dans redis-cli (PING, PUBLISH, SUBSCRIBE, PSUBSCRIBE, XADD, XREVRANGE, XRANGE, XLEN).
-- Securite des secrets verifiee : aucun mot de passe code en dur (variables d'environnement via .env).
-- Validation des entrees et isolation des utilisateurs (user42 vs user4) verifiees sur /client et via les 10 tests pytest.
+Je reste responsable du code et capable d'expliquer chaque partie.
