@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
@@ -30,9 +30,9 @@ async function connecter() {
   if (ws) ws.close();
   const histo = document.getElementById("histo");
   histo.innerHTML = "";
-  const rep = await fetch("/history/" + user);
+  const rep = await fetch("/history/" + encodeURIComponent(user) + "?count=30");
   (await rep.json()).forEach(n => ajouter(histo, n));
-  ws = new WebSocket("ws://" + location.host + "/ws/" + user);
+  ws = new WebSocket("ws://" + location.host + "/ws/" + encodeURIComponent(user));
   ws.onopen = () => document.getElementById("etat").textContent = "Connecte : " + user;
   ws.onclose = () => document.getElementById("etat").textContent = "Deconnecte";
   ws.onmessage = e => {
